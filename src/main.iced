@@ -13,6 +13,7 @@ exports.Engine = class Engine
     @_n_out = 0
     @_probes = new List
     @_data_buffers = { stdin : [], stdout : [] }
+    @_started = false
 
   #-----------------------------
 
@@ -43,6 +44,7 @@ exports.Engine = class Engine
   #-----------------------------
 
   expect : (terms, cb) ->
+    @_start_pipes()
     @_probes.push { terms, cb }
     @
 
@@ -52,6 +54,12 @@ exports.Engine = class Engine
     @proc = spawn @name, @args
     @pid = @proc.pid
     @_n_out = 3 # we need 3 exit events before we can exit
+
+  #-----------------------------
+
+  _start_pipes : () ->
+    return if @_started
+    @_started = true
     @proc.on 'exit', (status) => @_got_exit status
     @proc.stderr.on 'end',  ()     => @_maybe_finish()
     @proc.stdout.on 'end',  ()     => @_maybe_finish()
@@ -61,6 +69,7 @@ exports.Engine = class Engine
   #-----------------------------
 
   send : (args...) ->
+    @_start_pipes()
     if @proc 
       @proc.stdin.write args...
     else
@@ -86,6 +95,7 @@ exports.Engine = class Engine
   #-----------------------------
 
   wait : (cb) ->
+    @_start_pipes()
     if (@_exit_code? and @_n_out <= 0) then cb @_exit_code
     else @_exit_cb = cb
 

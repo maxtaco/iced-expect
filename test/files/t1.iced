@@ -8,7 +8,8 @@ exports.t1 = (T,cb) ->
   eng = new Engine { 
     name : path.join(__dirname, "..", "bin", "p1.iced")
   }
-  await (eng.expect [{ pattern : /Droote\?/ } ], defer err).run()
+  eng.run()
+  await eng.expect [{ pattern : /Droote\?/ } ], defer err
   T.no_error err
   await eng.send "Joe\n", "utf8", defer()
   await eng.expect [{ pattern : /Jabbers\?/ } ], defer err
