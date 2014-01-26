@@ -17,7 +17,8 @@
     "iced-coffee-script" : "~1.6.3-j",
     "iced-data-structures" : "~0.0.5",
     "iced-test" : "~0.0.9",
-    "read" : "~1.0.5"
+    "read" : "~1.0.5",
+    "optimist" : "*"
   },
   "author": "Maxwell Krohn",
   "license": "BSD-3-Clause",

@@ -28,6 +28,7 @@ exports.Engine = class Engine
       for term in o.terms
         if (not(term.source?) or (term.source is source)) and s.match(term.pattern)
           @_probes.remove o
+          @_data_buffers[source] = []
           o.cb null, data, source
           return true
       return false
@@ -43,12 +44,14 @@ exports.Engine = class Engine
 
   expect : (terms, cb) ->
     @_probes.push { terms, cb }
+    @
 
   #-----------------------------
 
   run : () ->
     @proc = spawn @name, @args
     @pid = @proc.pid
+    @_n_out = 3 # we need 3 exit events before we can exit
     @proc.on 'exit', (status) => @_got_exit status
     @proc.stderr.on 'end',  ()     => @_maybe_finish()
     @proc.stdout.on 'end',  ()     => @_maybe_finish()
@@ -67,7 +70,6 @@ exports.Engine = class Engine
 
   _got_exit : (status) ->
     @_exit_code = status
-    @handler.got_exit status
     @proc = null
     @_maybe_finish()
 
@@ -78,13 +80,13 @@ exports.Engine = class Engine
       @_clear_probes()
       if (ecb = @_exit_cb)?
         @_exit_cb = null
-        ecb = @_exit_code
+        ecb @_exit_code
       @pid = -1
 
   #-----------------------------
 
   wait : (cb) ->
-    if (@_exit_code and @_n_out <= 0) then cb @_exit_code
+    if (@_exit_code? and @_n_out <= 0) then cb @_exit_code
     else @_exit_cb = cb
 
 #============================================================
