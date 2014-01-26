@@ -14,7 +14,8 @@
     "expect"
   ],
   "devDependencies" : {
-    "iced-coffee-script" : "~1.6.3-j"
+    "iced-coffee-script" : "~1.6.3-j",
+    "iced-data-structures" : "~0.0.5"
   },
   "author": "Maxwell Krohn",
   "license": "BSD-3-Clause",
