@@ -12,10 +12,17 @@ exports.Engine = class Engine
     @_exit_cb = null
     @_n_out = 0
     @_probes = new List
+    @_data_buffers = { stdin : [], stdout : [] }
+
+  #-----------------------------
+
+  stdout : () -> Buffer.concat @_data_buffers.stdout
+  stderr : () -> Buffer.concat @_data_buffers.stderr
 
   #-----------------------------
 
   _got_data : (data, source) ->
+    @_data_buffers[source].push data
     s = data.toString('utf8')
     @_probes.walk (o) =>
       for term in o.terms
