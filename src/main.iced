@@ -13,7 +13,7 @@ exports.Engine = class Engine
     @_exit_cb = null
     @_n_out = 0
     @_probes = new List
-    @_data_buffers = { stdin : [], stdout : [] }
+    @_data_buffers = { stderr : [], stdout : [] }
     @_started = false
 
   #-----------------------------
