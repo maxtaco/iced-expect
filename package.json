@@ -1,6 +1,6 @@
 {
   "name": "iced-expect",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "An expect system for scripting interactive shell programs",
   "main": "lib/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "iced-data-structures" : "~0.0.5",
     "iced-test" : "~0.0.9",
     "read" : "~1.0.5",
-    "optimist" : "*"
+    "optimist" : "~0.6.0"
   },
   "author": "Maxwell Krohn",
   "license": "BSD-3-Clause",
