@@ -1,5 +1,6 @@
 {spawn} = require 'child_process'
 {List} = require 'iced-data-structures'
+util = require 'util'
 
 #============================================================
 
@@ -26,13 +27,12 @@ exports.Engine = class Engine
     @_data_buffers[source].push data
     s = data.toString('utf8')
     @_probes.walk (o) =>
-      for term in o.terms
-        if (not(term.source?) or (term.source is source)) and s.match(term.pattern)
-          @_probes.remove o
-          @_data_buffers[source] = []
-          o.cb null, data, source
-          return true
-      return false
+      if (o.source is source) and s.match(o.pattern)
+        @_probes.remove o
+        @_data_buffers[source] = []
+        o.cb null, data, source
+        true
+      else false
 
   #-----------------------------
 
@@ -43,9 +43,10 @@ exports.Engine = class Engine
 
   #-----------------------------
 
-  expect : (terms, cb) ->
+  expect : ({source, pattern}, cb) ->
     @_start_pipes()
-    @_probes.push { terms, cb }
+    source = 'stdout' unless source?
+    @_probes.push { source, pattern, cb }
     @
 
   #-----------------------------
@@ -54,6 +55,7 @@ exports.Engine = class Engine
     @proc = spawn @name, @args
     @pid = @proc.pid
     @_n_out = 3 # we need 3 exit events before we can exit
+    @
 
   #-----------------------------
 
@@ -65,6 +67,12 @@ exports.Engine = class Engine
     @proc.stdout.on 'end',  ()     => @_maybe_finish()
     @proc.stderr.on 'data', (data) => @_got_data data, 'stderr'
     @proc.stdout.on 'data', (data) => @_got_data data, 'stdout'
+
+  #-----------------------------
+
+  sendline : (args...) ->
+    args[0] += "\n" if args[0][-1...][0] isnt "\n"
+    @send args...
 
   #-----------------------------
 
@@ -91,6 +99,45 @@ exports.Engine = class Engine
         @_exit_cb = null
         ecb @_exit_code
       @pid = -1
+
+  #-----------------------------
+
+  conversation : (list, cb) ->
+    err = null
+    for item,i in list 
+      await @_do_obj item, "item #{i}", defer err
+      if err? then break
+    cb err
+
+  #-----------------------------
+
+  _do_obj : (obj, what, cb) ->
+    err = null
+    if typeof(obj) isnt 'object'
+      err = new Error "#{what} wasn't a dictionary as expected"
+    else if Object.keys(obj).length isnt 1
+      err = new Error "Expected only one kv-pair per item; got otherwise in #{what}"
+    else 
+      k = Object.keys(obj)[0]
+      v = obj[k]
+      switch k
+        when 'expect'
+          if (typeof(v) is 'string') or (typeof(v) is 'object' and util.isRegExp(v))
+            arg = { pattern : v }
+          else if typeof(v) isnt 'object'
+            err = new Error "Bad argument to 'expect' in #{what}"
+          else
+            arg = v
+          unless err?
+            await @expect arg, defer err
+        when 'send', 'sendline'
+          if typeof(v) is 'string'
+            await @[k] v, defer err
+          else
+            err = new Error "Bad argument to #{k}: need a string in #{what}"
+        else
+          err = new Error "Unknown command: #{k}"
+    cb err
 
   #-----------------------------
 

@@ -22,3 +22,20 @@ exports.t1 = (T,cb) ->
   T.equal rc, 0, "error was 0"
   T.equal eng.stdout().toString('utf8'), "Joe:Bill:me2\n", "right stdout"
   cb()
+
+exports.t2 = (T,cb) ->
+  eng = new Engine { 
+    name : path.join(__dirname, "..", "bin", "p1.iced")
+  }
+  await eng.run().conversation [
+    { expect : "What is your name, Droote?" },
+    { sendline : "abc" },
+    { expect : /Jabbers\?/ },
+    { sendline : "1234" },
+    { expect : /those dogs/ },
+    { sendline : "woof" }
+  ], defer err
+  await eng.wait defer rc
+  T.equal rc, 0, "error was 0"
+  T.equal eng.stdout().toString('utf8'), "abc:1234:woof\n", "right stdout"
+  cb()
