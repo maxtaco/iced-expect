@@ -18,8 +18,15 @@ exports.Engine = class Engine
 
   #-----------------------------
 
-  stdout : () -> Buffer.concat @_data_buffers.stdout
-  stderr : () -> Buffer.concat @_data_buffers.stderr
+  collect : (which) ->
+    out = Buffer.concat @_data_buffers[which]
+    @_data_buffers[which] = []
+    return out
+
+  #-----------------------------
+
+  stdout : () -> @collect 'stdout'
+  stderr : () -> @collect 'stderr'
 
   #-----------------------------
 
@@ -29,8 +36,8 @@ exports.Engine = class Engine
     @_probes.walk (o) =>
       if (o.source is source) and s.match(o.pattern)
         @_probes.remove o
-        @_data_buffers[source] = []
-        o.cb null, data, source
+        out_data = @collect source
+        o.cb null, out_data, source
         true
       else false
 
