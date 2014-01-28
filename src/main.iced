@@ -8,10 +8,11 @@ exports.Engine = class Engine
 
   #-----------------------------
 
-  constructor : ({@args, @name}) ->
+  constructor : ({@args, @name, @opts}) ->
     @_exit_code = null
     @_exit_cb = null
     @_n_out = 0
+    @opts or= {}
     @_probes = new List
     @_data_buffers = { stderr : [], stdout : [] }
     @_started = false
@@ -33,6 +34,10 @@ exports.Engine = class Engine
   _got_data : (data, source) ->
     @_data_buffers[source].push data
     s = data.toString('utf8')
+    if @opts?.debug?[source]?
+      console.error "Got data on #{source} >>>>>"
+      console.error s
+      console.error "<<<<<"
     @_probes.walk (o) =>
       if (o.source is source) and s.match(o.pattern)
         @_probes.remove o
