@@ -38,13 +38,16 @@ exports.Engine = class Engine
       console.error "Got data on #{source} >>>>>"
       console.error s
       console.error "<<<<<"
+    if @_opts?.passthrough?[source]?
+      process[source].write data, 'utf8'
     @_probes.walk (o) =>
       if (o.source is source) and s.match(o.pattern)
         @_probes.remove o unless o.repeat
         out_data = @collect source
         o.cb null, out_data, source
+        false
+      else 
         true
-      else false
 
   #-----------------------------
 
