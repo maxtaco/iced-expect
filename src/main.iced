@@ -40,7 +40,7 @@ exports.Engine = class Engine
       console.error "<<<<<"
     @_probes.walk (o) =>
       if (o.source is source) and s.match(o.pattern)
-        @_probes.remove o
+        @_probes.remove o unless o.repeat
         out_data = @collect source
         o.cb null, out_data, source
         true
@@ -51,14 +51,14 @@ exports.Engine = class Engine
   _clear_probes : () ->
     @_probes.walk (o) =>
       @_probes.remove o
-      o.cb new Error "EOF before expectation met"
+      o.cb new Error "EOF before expectation met" unless o.repeat
 
   #-----------------------------
 
-  expect : ({source, pattern}, cb) ->
+  expect : ({source, pattern, repeat}, cb) ->
     @_start_pipes()
     source = 'stdout' unless source?
-    @_probes.push { source, pattern, cb }
+    @_probes.push { source, pattern, repeat, cb }
     @
 
   #-----------------------------

@@ -17,10 +17,12 @@ exports.t1 = (T,cb) ->
   await eng.send "Bill\n", defer()
   await eng.expect [{ pattern : /those dogs/ } ], defer err
   T.no_error err
-  await eng.send "me2\n", defer()
+  await eng.send "yes\n", defer()
+  eng.expect { pattern : /You good\?/, repeat : true }, () ->
+    await eng.sendline "y", defer()
   await eng.wait defer rc
   T.equal rc, 0, "error was 0"
-  T.equal eng.stdout().toString('utf8'), "Joe:Bill:me2\n", "right stdout"
+  T.equal eng.stdout().toString('utf8'), "Joe:Bill:yes\n", "right stdout"
   cb()
 
 exports.t2 = (T,cb) ->
